@@ -1,8 +1,0 @@
----
-title: ''
-output: pdf_document
----
-
-# References
-
-<div id="refs"></div>
