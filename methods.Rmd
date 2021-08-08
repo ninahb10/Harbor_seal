@@ -1,0 +1,79 @@
+---
+title: ''
+output: pdf_document
+---
+
+# Methods 
+
+\vspace{0.5cm}
+
+## SRDL Deployments and Data Sampling
+
+SRDL = Satellite Relay Data Logger.
+
+### The locations
+1. How do areas get picked?
+2. Map of Norway with year of sampling and rings around the areas.
+
+### Tagging of the animals
+Description of methods used to capture and tag animals in the field. **Ask Carla for information on how they did it at Portør and Bolærne**. Use Ramasco-article for how they did it in Porsangen. Use my own accounts for Jomfruland tagging. Ask if there are publications on the Øksnes-data, or just ask Martin how they did it.
+
+### Technology
+1. A short description of the tags (maybe even a picture) and how they work (Argos etc).
+2. More specific on how they record my haul-out data - the data of interest.
+
+"A haul-out begins when the SRDL has been continuously dry for a specific time, usually 10 minutes. It ends when continuously wet for another interval (usually 40 seconds). As well as sending records of individual events, such as dives and haul-outs, the SRDL also calculates summary statistics of those events over a specific time period (**6 hours for 2020-21 data, 2 hours for the rest of the data sets - info for Results**). These statistics are based on a ll the data recorded by the SRDL and so are not prone to distortion by variations in the efficiency of transmission via Argos. **FOR RESULTS**: HAUL.TM is the proportion of time spent hauled-out (%) between S.DATE (the start time of the summary period) and E.DATE.
+
+### 
+
+
+## Data Preparation
+
+### How I got the haulout data from SMRU and prepared it for analysis in R
+Remove data that was recorded pre- and post tagging duration. 
+
+### How I retrieved and prepared the environmental variables
+Kartverket for water level observations, and SeKlima for precipitation, wind and temperature.
+Solar elevation and division in night and day.
+
+
+## Model Selection
+Describe the structure of the data, and justify the chosen model
+
+### GLMM Analysis
+Describe by words and equations how the model works.
+
+Write your methods here. In this tutorial you can use this already made file\\to add examples of figures and tables and explore knitr and kableExtra functionalities!
+
+### Telemetry data
+
+This study uses GPS telemetry tags with GSM technology. CTD (conductivity, temperature, depth (pressure of seawater)) sensors log temperature and pressure at intervals, and time-depth recorders (TDR recorders) continually record fine-scale movements of the animals.
+
+The telemetry instrumentation is developed at the University of St Andrews at the Sea Mammal Research Unit – or SMRU – in Scotland.
+
+The haul-out records that are available to me in this project include records from tags that were deployed on 5 individuals in Oslofjorden in November 2019, 1 individual in Oslofjorden in September 2020, 4 individuals in Jomfruland outside Kragerø in November 2020, and harbor seal records from Northern Norway dating back to 2008. 
+
+Data from the seals that were tagged in 2020 will continue to be logged as long as these tags are still attached – which, hopefully, will be all the way up to the next molting in the end of summer.
+
+### In the field
+
+I was in the field at Jomfruland outside Kragerø one week in November last year. Seals were captured with so-called pop-up nets. They are modified nets specifically designed to catch hauled out seals effectively. The nets were deployed around skerries that had previously been observed to be preferred haul-out locations. 
+
+After hours without disturbance, and with seals back on the skerries, the pop-up nets were triggered from a short distance with a remote shutter release. 
+
+The rubber hose that contained the net then filled with air that was released from an air tank attached to the net. 
+
+I personally observed that the catch rate was low, and the effort that goes in before, during and after an attempt of catching seals is huge. It was very exciting and interesting to be able to come along in the field and observe and learn the practical skills needed. 
+
+The animals tagged in November were three males and one female. 
+
+### Data Analysis
+
+I will use RStudio for R to import, clean and explore telemetry data and perform statistical analyses, and QGIS for visualization.
+
+All the telemetry data will be retrieved from the Sea Mammal Research Unit, and I will retrieve the relevant weather data from the Norwegian Meteorological Institute through API (SeKlima). 
+
+With help and guidance from my supervisors, mainly Carla, I will apply suitable statistical models, such as generalized linear mixed models and generalized additive mixed models to investigate how haul-out behavior is affected by the individual and environmental parameters I mentioned earlier.
+
+
+
