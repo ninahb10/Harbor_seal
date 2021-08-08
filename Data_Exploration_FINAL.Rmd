@@ -1,0 +1,1524 @@
+---
+title: "Data Exploration"
+bibliography: "MyRefs.bib"
+output: pdf_document
+geometry: "left = 2.5cm, right = 2cm, top = 2cm, bottom = 2cm"
+header-includes:
+  - \usepackage{float}
+  - \usepackage{sectsty}
+  - \usepackage{paralist}
+  - \usepackage{setspace}\spacing{1.5}
+  - \usepackage{fancyhdr}
+  - \usepackage{lastpage}
+  - \usepackage{dcolumn}
+  - \usepackage{natbib}\bibliographystyle{agsm}
+  - \usepackage[nottoc, numbib]{tocbibind}
+  - \usepackage[maxfloats=256]{morefloats}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\maxdeadcycles=1000
+
+1. Outlier detection
+
+2. Relationships
+
+3. Collinearity, multicollinearity and confounding variables
+
+**NB**: I have performed a lot more data exploration on the data than shown in this .Rmd-file. The following figures are the ones I choose to highlight.
+
+I make use of the methods and protocol suggested in the book by @zuur2015 to explore and visualize the data, as well as the packages `tidyverse` [@tidyverse],  `lattice` [@lattice], `GGally` [@GGally] and `ggpubr` [@ggpubr]. I also source HighstatLibV10.R to be able to use practical functions for data exploration, obtained with a password at [www.highstat.com](https://www.highstat.com/index.php).
+
+```{r, include=FALSE}
+# Load in all data frames and fix them up
+# 2020-21
+haulout_2020 <- read.csv("Final_Dataframes/Haulout_2020.csv", header = TRUE)
+str(haulout_2020)
+# Transform variables
+haulout_2020$REF <- as.factor(haulout_2020$REF)
+haulout_2020$S.DATE <- as.POSIXct(haulout_2020$S.DATE)
+haulout_2020$CEN.DATE <- as.POSIXct(haulout_2020$CEN.DATE)
+haulout_2020$E.DATE <- as.POSIXct(haulout_2020$E.DATE)
+haulout_2020$fMonth <- as.factor(haulout_2020$fMonth)
+haulout_2020$Tide_cat <- as.factor(haulout_2020$Tide_cat)
+haulout_2020$Night_Day <- as.factor(haulout_2020$Night_Day)
+haulout_2020$Sunrise <- as.POSIXct(haulout_2020$Sunrise)
+haulout_2020$Sunset <- as.POSIXct(haulout_2020$Sunset)
+haulout_2020$Dawn <- as.POSIXct(haulout_2020$Dawn)
+haulout_2020$Dusk <- as.POSIXct(haulout_2020$Dusk)
+haulout_2020$Light_cat <- as.factor(haulout_2020$Light_cat)
+haulout_2020$Sex <- as.factor(haulout_2020$Sex)
+haulout_2020$Moon_cat <- as.factor(haulout_2020$Moon_cat)
+haulout_2020$Tide_cat_abbr <- as.factor(haulout_2020$Tide_cat_abbr)
+str(haulout_2020)
+
+# 2019-20
+haulout_2019 <- read.csv("Final_Dataframes/Haulout_2019.csv", header = TRUE)
+str(haulout_2019)
+# Transform variables
+haulout_2019$REF <- as.factor(haulout_2019$REF)
+haulout_2019$S.DATE <- as.POSIXct(haulout_2019$S.DATE)
+haulout_2019$CEN.DATE <- as.POSIXct(haulout_2019$CEN.DATE)
+haulout_2019$E.DATE <- as.POSIXct(haulout_2019$E.DATE)
+haulout_2019$fMonth <- as.factor(haulout_2019$fMonth)
+haulout_2019$Tide_cat <- as.factor(haulout_2019$Tide_cat)
+haulout_2019$Night_Day <- as.factor(haulout_2019$Night_Day)
+haulout_2019$Sunrise <- as.POSIXct(haulout_2019$Sunrise)
+haulout_2019$Sunset <- as.POSIXct(haulout_2019$Sunset)
+haulout_2019$Dawn <- as.POSIXct(haulout_2019$Dawn)
+haulout_2019$Dusk <- as.POSIXct(haulout_2019$Dusk)
+haulout_2019$Light_cat <- as.factor(haulout_2019$Light_cat)
+haulout_2019$Sex <- as.factor(haulout_2019$Sex)
+haulout_2019$Moon_cat <- as.factor(haulout_2019$Moon_cat)
+haulout_2019$Tide_cat_abbr <- as.factor(haulout_2019$Tide_cat_abbr)
+str(haulout_2019)
+
+# 2017
+haulout_2017 <- read.csv("Final_Dataframes/Haulout_2017.csv", header = TRUE)
+str(haulout_2017)
+# Transform variables
+haulout_2017$REF <- as.factor(haulout_2017$REF)
+haulout_2017$S.DATE <- as.POSIXct(haulout_2017$S.DATE)
+haulout_2017$CEN.DATE <- as.POSIXct(haulout_2017$CEN.DATE)
+haulout_2017$E.DATE <- as.POSIXct(haulout_2017$E.DATE)
+haulout_2017$fMonth <- as.factor(haulout_2017$fMonth)
+haulout_2017$Tide_cat <- as.factor(haulout_2017$Tide_cat)
+haulout_2017$Night_Day <- as.factor(haulout_2017$Night_Day)
+haulout_2017$Sunrise <- as.POSIXct(haulout_2017$Sunrise)
+haulout_2017$Sunset <- as.POSIXct(haulout_2017$Sunset)
+haulout_2017$Dawn <- as.POSIXct(haulout_2017$Dawn)
+haulout_2017$Dusk <- as.POSIXct(haulout_2017$Dusk)
+haulout_2017$Light_cat <- as.factor(haulout_2017$Light_cat)
+haulout_2017$Sex <- as.factor(haulout_2017$Sex)
+haulout_2017$Moon_cat <- as.factor(haulout_2017$Moon_cat)
+haulout_2017$Tide_cat_abbr <- as.factor(haulout_2017$Tide_cat_abbr)
+str(haulout_2017)
+
+# 2012
+haulout_2012 <- read.csv("Final_Dataframes/Haulout_2012.csv", header = TRUE)
+str(haulout_2012)
+# Transform variables
+haulout_2012$REF <- as.factor(haulout_2012$REF)
+haulout_2012$S.DATE <- as.POSIXct(haulout_2012$S.DATE)
+haulout_2012$CEN.DATE <- as.POSIXct(haulout_2012$CEN.DATE)
+haulout_2012$E.DATE <- as.POSIXct(haulout_2012$E.DATE)
+haulout_2012$fMonth <- as.factor(haulout_2012$fMonth)
+haulout_2012$Tide_cat <- as.factor(haulout_2012$Tide_cat)
+haulout_2012$Night_Day <- as.factor(haulout_2012$Night_Day)
+haulout_2012$Sunrise <- as.POSIXct(haulout_2012$Sunrise)
+haulout_2012$Sunset <- as.POSIXct(haulout_2012$Sunset)
+haulout_2012$Dawn <- as.POSIXct(haulout_2012$Dawn)
+haulout_2012$Dusk <- as.POSIXct(haulout_2012$Dusk)
+haulout_2012$Light_cat <- as.factor(haulout_2012$Light_cat)
+haulout_2012$Sex <- as.factor(haulout_2012$Sex)
+haulout_2012$Moon_cat <- as.factor(haulout_2012$Moon_cat)
+haulout_2012$Tide_cat_abbr <- as.factor(haulout_2012$Tide_cat_abbr)
+str(haulout_2012)
+
+# 2009
+haulout_2009 <- read.csv("Final_Dataframes/Haulout_2009.csv", header = TRUE)
+str(haulout_2009)
+# Transform variables
+haulout_2009$REF <- as.factor(haulout_2009$REF)
+haulout_2009$S.DATE <- as.POSIXct(haulout_2009$S.DATE)
+haulout_2009$CEN.DATE <- as.POSIXct(haulout_2009$CEN.DATE)
+haulout_2009$E.DATE <- as.POSIXct(haulout_2009$E.DATE)
+haulout_2009$fMonth <- as.factor(haulout_2009$fMonth)
+haulout_2009$Tide_cat <- as.factor(haulout_2009$Tide_cat)
+haulout_2009$Night_Day <- as.factor(haulout_2009$Night_Day)
+haulout_2009$Sunrise <- as.POSIXct(haulout_2009$Sunrise)
+haulout_2009$Sunset <- as.POSIXct(haulout_2009$Sunset)
+haulout_2009$Dawn <- as.POSIXct(haulout_2009$Dawn)
+haulout_2009$Dusk <- as.POSIXct(haulout_2009$Dusk)
+haulout_2009$Light_cat <- as.factor(haulout_2009$Light_cat)
+haulout_2009$Sex <- as.factor(haulout_2009$Sex)
+haulout_2009$Moon_cat <- as.factor(haulout_2009$Moon_cat)
+haulout_2009$Tide_cat_abbr <- as.factor(haulout_2009$Tide_cat_abbr)
+str(haulout_2009)
+
+# 2008
+haulout_2008 <- read.csv("Final_Dataframes/Haulout_2008.csv", header = TRUE)
+str(haulout_2008)
+# Transform variables
+haulout_2008$REF <- as.factor(haulout_2008$REF)
+haulout_2008$S.DATE <- as.POSIXct(haulout_2008$S.DATE)
+haulout_2008$CEN.DATE <- as.POSIXct(haulout_2008$CEN.DATE)
+haulout_2008$E.DATE <- as.POSIXct(haulout_2008$E.DATE)
+haulout_2008$fMonth <- as.factor(haulout_2008$fMonth)
+haulout_2008$Tide_cat <- as.factor(haulout_2008$Tide_cat)
+haulout_2008$Night_Day <- as.factor(haulout_2008$Night_Day)
+haulout_2008$Sunrise <- as.POSIXct(haulout_2008$Sunrise)
+haulout_2008$Sunset <- as.POSIXct(haulout_2008$Sunset)
+haulout_2008$Dawn <- as.POSIXct(haulout_2008$Dawn)
+haulout_2008$Dusk <- as.POSIXct(haulout_2008$Dusk)
+haulout_2008$Light_cat <- as.factor(haulout_2008$Light_cat)
+haulout_2008$Sex <- as.factor(haulout_2008$Sex)
+# Must rename - it turned out "FALSE", not F for Female.
+levels(haulout_2008$Sex) <- "F"
+str(haulout_2008$Sex) # Done renaming
+haulout_2008$Moon_cat <- as.factor(haulout_2008$Moon_cat)
+haulout_2008$Tide_cat_abbr <- as.factor(haulout_2008$Tide_cat_abbr)
+str(haulout_2008)
+
+```
+
+
+# Outlier detection
+
+
+### The Response (HAUL.TM)
+
+**2020-2021**: Normally distributed, with 50% of the values containing most values. Median a little high (some above 60% values). The scatterplot also shows that there are some more points between 60 and 100. No apparent outliers. 
+
+**2019-2020**: This dataset has a lot more zero haulout values than the data above. This response is hightly zero inflated. The boxplot shows that much less than 25% of the values are above zero.
+
+**2017**: 50% of the values are zeros, 25% are between zero and 60 percent haulouts.
+
+**2011-2013**: Zero inflated.  Well over 75% zeros.
+
+**2009-2011**: Zero inflated. Well over 75% zeros.
+
+**2007-2008**: Zero inflated. Median is zero. The upper 50% of the data only reaches to value of 10.
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of the response variable 'haulout time' (2020 - 2021 (Jomfruland in Skagerrak)), which is proportional data and zero inflated."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$HAUL.TM,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2020$HAUL.TM)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of the response variable 'haulout time' (2019 - 2020 (Bolærne in Skagerrak)), which is proportional data and zero inflated."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$HAUL.TM,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2019$HAUL.TM)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of the response variable 'haulout time' (2017 (Jomfruland in Skagerrak)), which is proportional data and zero inflated."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$HAUL.TM,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2017$HAUL.TM)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of the response variable 'haulout time' (2011 - 2013 (Porsangerfjorden)), which is proportional data and zero inflated."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$HAUL.TM,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2012$HAUL.TM)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of the response variable 'haulout time' (2009 - 2011 (Porsangerfjorden)), which is proportional data and zero inflated."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$HAUL.TM,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2009$HAUL.TM)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of the response variable 'haulout time' (2007 - 2008 (Stø, Vesterålen)), which is proportional data and zero inflated."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$HAUL.TM,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2008$HAUL.TM)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'waterlevel' (2020 - 2021 (Jomfruland, Skagerrak)). Pretty normally distributed, a few high values outside the whiskers - probably due to environmentally explainable factors."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$Waterlevel,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2020$Waterlevel)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'waterlevel' (2019 - 2020 (Bolærne, Skagerrak)). Pretty normally distributed, a few high values outside the whiskers - probably due to environmentally explainable factors. "}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$Waterlevel,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2019$Waterlevel)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'waterlevel' (2017 (Jomfruland, Skagerrak)). Pretty normally distributed, a few high values outside the whiskers - probably due to environmentally explainable factors."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$Waterlevel,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2017$Waterlevel)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'waterlevel' (2011 - 2013 (Porsangerfjorden)). This is the dataset with the most observations, and thus looks sweet and normally distributed. No apparent outliers."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$Waterlevel,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2012$Waterlevel)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'waterlevel' (2009 - 2011 (Porsangerfjorden)). Normally distributed, probably because the observations are from all 12 months during the year."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$Waterlevel,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2009$Waterlevel)
+```
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'waterlevel' (2007 - 2008 (Stø, Vesterålen)). Normally distributed, no extreme values"}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$Waterlevel,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2008$Waterlevel)
+```
+
+
+
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'air temperature' (2020 - 2021 (Jomfruland, Skagerrak)). Normally distributed data. Most observations are recorded between 0 and 6 degrees Celsius."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$Air_Temperature,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.1)
+boxplot(haulout_2020$Air_Temperature)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'air temperature' (2019 - 2020 (Bolærne, Skagerrak)). Most observations between slilghtly above 2 and slightly under 6 degrees Celsius. Outliers detected in the boxplot underneath the 25% whisker, and the dotplot shows the same; less observations at low temperature. Does not look appalling, though."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$Air_Temperature,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.1)
+boxplot(haulout_2019$Air_Temperature)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'air temperature' (2017 (Jomfruland, Skagerrak)). A very high median here, at 11 degrees Celsius. Most values between 5 and 13 degrees Celsius. The dotplot shows a strange pattern, but it might be due to the ordering of the individuals, which are pooled - as for all the data sets visualized in this pdf. In another script I separated the individuals. This is temperature observations concerning 5 individuals, and only one of them had a functional tag for several months - the other four recorded only during a varm period in the end of August to mid September 2017. This is a pooled data-problem, I guess - and thus something to take into account when constructing a model. Is this why I need to add a random effect? "}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$Air_Temperature,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.1)
+boxplot(haulout_2017$Air_Temperature)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'air temperature' (2011 - 2013 (Porsangerfjorden)). 50% of obsrvations lies between -1.5 and 9,2 degrees Celsius. Some possible outliers below -19 degrees. Max temp (within the upper 25% observations) is 24.5 degrees."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$Air_Temperature,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.1)
+boxplot(haulout_2012$Air_Temperature)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'air temperature' (2009 - 2011 (Porsangerfjorden)). This variable has a lot of NA's, probably due to the large number of observations (again due to all of 12 individuals) - the largest dataset. Most observations lie between -5.4 and 4.2 degrees Celsius, with some extreme values above 19 degrees."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$Air_Temperature,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.1)
+boxplot(haulout_2009$Air_Temperature)
+```
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'air temperature' (2007 - 2008 (Stø, Vesterålen)). Most observations between 0.5 and 6.8 degrees Celsius. Some possible outliers below 9 degrees. Nothing out of the ordinary, and which can't be explained by natural environmental flucutations."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$Air_Temperature,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.1)
+boxplot(haulout_2008$Air_Temperature)
+```
+
+
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'precipitation' (2020 - 2021 (Jomfruland, Skagerrak)). Heavily zero inflated variable, with median zero. Max value is 2.13. It doesn't rain all the time, man. Precipitation data is not so easy to work with, I am starting to understand. Can't transform absolute zeros, for example."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$Precipitation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2020$Precipitation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'precipitation' (2019 - 2020 (Bolærne, Skagerrak)). The same distribution and heavy zero inflation as above."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$Precipitation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2019$Precipitation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'precipitation' (2017 (Jomfruland, Skagerrak)). The same distribution as above, but it rained more this year. A larger maximum value."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$Precipitation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2017$Precipitation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'precipitation' (2011 - 2013 (Porsangerfjorden)). A very extreme value makes the summery data for this variable strange and full of zero inflation. I can't justify removing the extreme values, since it can be explained, but it really messes up this covariate."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$Precipitation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2012$Precipitation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'precipitation' (2009 - 2011 (Porsangerfjorden)). A couple of very high values messes up the zero inflated variable even more. It can be explained, so I shouldn't remove it. Would it be an option to make two variables - one with and one without extreme values?"}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$Precipitation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2009$Precipitation)
+```
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'precipitation' (2007 - 2008 (Stø, Vesterålen)). One totally super extreme value that loops with all the individuals create an even more extreme zero-skew than for the other datasets. I have to mention this in bold letters in the results."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$Precipitation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.3)
+boxplot(haulout_2008$Precipitation)
+```
+
+
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'windspeed' (2020 - 2021 (Jomfruland, Skagerrak)). I interpret the results here as explainable windspeed patterns for the time interval. Some extreme outliers during a period of strong winds up to 20 m/s."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$Windspeed,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2020$Windspeed)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'windspeed' (2019 - 2020 (Bolærne, Skagerrak)). The same windspeed patterns as for the above variable."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$Windspeed,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2019$Windspeed)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'windspeed' (2017 (Jomfruland, Skagerrak)). Same distribution of windspeed pattern as for the two above."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$Windspeed,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2017$Windspeed)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'windspeed' (2011 - 2013 (Porsangerfjorden)). Same distribution as above, but with more extreme values above the 25% whisker."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$Windspeed,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2012$Windspeed)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'windspeed' (2009 - 2011 (Porsangerfjorden)). Pretty much the same distribution as for the above."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$Windspeed,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2009$Windspeed)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'windspeed' (2007 - 2008 (Stø, Vesterålen)). Pretty much the same distribution as above."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$Windspeed,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2008$Windspeed)
+```
+
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'solar elevation' (2020 - 2021 (Jomfruland, Skagerrak)). Based on the solar asimuth, so this is an astronomical normally distributed variable!"}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$solar_elevation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2020$solar_elevation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'solar elevation' (2019 - 2020 (Bolærne, Skagerrak)). Nothing strange here."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$solar_elevation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2019$solar_elevation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'solar elevation' (2017 (Jomfruland, Skagerrak)). Nothing strange here."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$solar_elevation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2017$solar_elevation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'solar elevation' (2011 - 2013 (Porsangerfjorden)). Perfect distribution"}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$solar_elevation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2012$solar_elevation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'solar elevation' (2009 - 2011 (Porsangerfjorden)). Perfect distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$solar_elevation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2009$solar_elevation)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'solar elevation' (2007 - 2008 (Stø, Vesterålen)). Looks good."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$solar_elevation,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2008$solar_elevation)
+```
+
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'moonphase' (2020 - 2021 (Jomfruland, Skagerrak)). Perfectly normal distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2020$moon_phase,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2020$moon_phase)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'moonphase' (2019 - 2020 (Bolærne, Skagerrak)). Perfectly normal distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2019$moon_phase,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2019$moon_phase)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'moonphase' (2017 (Jomfruland, Skagerrak)). Perfectly normal distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2017$moon_phase,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2017$moon_phase)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'moonphase' (2011 - 2013 (Porsangerfjorden)). Perfectly normal distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2012$moon_phase,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2012$moon_phase)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'moonphase' (2009 - 2011 (Porsangerfjorden)). Perfectly normal distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2009$moon_phase,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2009$moon_phase)
+```
+
+
+
+
+```{r, echo = FALSE, fig.width=5, fig.height=3, fig.cap= "Dotplot and boxplot of continuous covariate 'moonphase' (2007 - 2008 (Stø, Vesterålen)). Perfectly normal distribution."}
+par(mfrow = c(1, 2), mar = c(5, 4, 1, 1))
+dotchart(haulout_2008$moon_phase,
+         ylab = "Order of data",
+         xlab = "Range of data",
+         pt.cex = 0.2)
+boxplot(haulout_2008$moon_phase)
+```
+
+
+
+
+```{r, echo = FALSE, fig.cap= "Barplot of  categorical covariate 'REF'. Notice the 2017 and 2012-data."}
+par(mfrow = c(2, 3))
+plot(haulout_2020$REF,
+     xlab = "Individual seals 2020",
+     ylab = "Number of data points")
+plot(haulout_2019$REF,
+     xlab = "Individual seals 2019",
+     ylab = "Number of data points")
+plot(haulout_2017$REF,
+     xlab = "Individual seals 2017",
+     ylab = "Number of data points")
+plot(haulout_2012$REF,
+     xlab = "Individual seals 2012",
+     ylab = "Number of data points")
+plot(haulout_2009$REF,
+     xlab = "Individual seals 2009",
+     ylab = "Number of data points")
+plot(haulout_2008$REF,
+     xlab = "Individual seals 2008",
+     ylab = "Number of data points")
+```
+
+
+
+
+
+```{r, echo = FALSE, fig.cap= "Barplot of  categorical covariate 'fMonth'. Some months have much more observations than others. I also suspect that any form of time-of-year variable will act confounding on some of the other variables."}
+par(mfrow = c(2, 3))
+plot(haulout_2020$fMonth,
+     xlab = "2020 - 2021",
+     ylab = "Number of data points")
+plot(haulout_2019$fMonth,
+     xlab = "2019 - 2020",
+     ylab = "Number of data points")
+plot(haulout_2017$fMonth,
+     xlab = "2017",
+     ylab = "Number of data points")
+plot(haulout_2012$fMonth,
+     xlab = "2011 - 2013",
+     ylab = "Number of data points")
+plot(haulout_2009$fMonth,
+     xlab = "2009 - 2011",
+     ylab = "Number of data points")
+plot(haulout_2008$fMonth,
+     xlab = "2007 - 2008",
+     ylab = "Number of data points")
+```
+
+
+
+
+
+
+```{r, echo = FALSE, fig.cap= "Barplot of  categorical covariate 'Tide_cat_abbr'. I find this variable pretty cool, and descriptive/easy to interpret. If it will fit in a model with all those categories, well - that is another question."}
+par(mfrow = c(2, 3))
+plot(haulout_2020$Tide_cat_abbr,
+     xlab = "Tide categories 2020",
+     ylab = "Number of data points")
+plot(haulout_2019$Tide_cat_abbr,
+     xlab = "Tide categories 2019",
+     ylab = "Number of data points")
+plot(haulout_2017$Tide_cat_abbr,
+     xlab = "Tide categories 2017",
+     ylab = "Number of data points")
+plot(haulout_2012$Tide_cat_abbr,
+     xlab = "Tide categories 2012",
+     ylab = "Number of data points")
+plot(haulout_2009$Tide_cat_abbr,
+     xlab = "Tide categories 2009",
+     ylab = "Number of data points")
+plot(haulout_2008$Tide_cat_abbr,
+     xlab = "Tide categories 2008",
+     ylab = "Number of data points")
+```
+
+
+
+
+
+```{r, echo = FALSE, fig.cap= "Barplot of  categorical covariate 'Night_Day'. Since the summer months are poorly represented in all data frames, it is not strange that this variable shows a skew towards more observations recorded during negative solar elevation."}
+par(mfrow = c(2, 3))
+plot(haulout_2020$Night_Day,
+     xlab = "Night & Day 2020",
+     ylab = "Number of data points")
+plot(haulout_2019$Night_Day,
+     xlab = "Night & Day 2019",
+     ylab = "Number of data points")
+plot(haulout_2017$Night_Day,
+     xlab = "Night & Day 2017",
+     ylab = "Number of data points")
+plot(haulout_2012$Night_Day,
+     xlab = "Night & Day 2012",
+     ylab = "Number of data points")
+plot(haulout_2009$Night_Day,
+     xlab = "Night & Day 2009",
+     ylab = "Number of data points")
+plot(haulout_2008$Night_Day,
+     xlab = "Night & Day 2008",
+     ylab = "Number of data points")
+```
+
+
+
+
+
+```{r, echo = FALSE, fig.cap= "Barplot of  categorical covariate 'Light_cat', with 4 levels. This variable adds some more information to make inference from. I quite like it. It looks to be distributed as it should be."}
+par(mfrow = c(2, 3))
+plot(haulout_2020$Light_cat,
+     xlab = "Light categories 2020",
+     ylab = "Number of data points")
+plot(haulout_2019$Light_cat,
+     xlab = "Light categories 2019",
+     ylab = "Number of data points")
+plot(haulout_2017$Light_cat,
+     xlab = "Light categories 2017",
+     ylab = "Number of data points")
+plot(haulout_2012$Light_cat,
+     xlab = "Light categories 2012",
+     ylab = "Number of data points")
+plot(haulout_2009$Light_cat,
+     xlab = "Light categories 2009",
+     ylab = "Number of data points")
+plot(haulout_2008$Light_cat,
+     xlab = "Light categories 2008",
+     ylab = "Number of data points")
+```
+
+
+
+
+```{r, echo = FALSE, fig.cap= "Barplot of  categorical covariate 'Moon_cat', with 4 levels. This is also a cool variable, I think. I don't know if it will produce new information for me to make inference from, but since moon face is connected to tide, which again might affect other variables, and vice versa, I created it."}
+par(mfrow = c(2, 3))
+plot(haulout_2020$Moon_cat,
+     xlab = "Moon categories 2020",
+     ylab = "Number of data points")
+plot(haulout_2019$Moon_cat,
+     xlab = "Moon categories 2019",
+     ylab = "Number of data points")
+plot(haulout_2017$Moon_cat,
+     xlab = "Moon categories 2017",
+     ylab = "Number of data points")
+plot(haulout_2012$Moon_cat,
+     xlab = "Moon categories 2012",
+     ylab = "Number of data points")
+plot(haulout_2009$Moon_cat,
+     xlab = "Moon categories 2009",
+     ylab = "Number of data points")
+plot(haulout_2008$Moon_cat,
+     xlab = "Moon categories 2008",
+     ylab = "Number of data points")
+```
+
+
+
+
+
+
+```{r,echo=FALSE, fig.cap= "INFLUENTIAL OBSERVATIONS in the 2020-data? Cook's distance plots for 4 continuous covariates, obtained from bivariate regression models with beta_HAUL.TM as response. Plot 1 (upper left) shows temperature, plot 2 (upper right) shows precipitation, plot 3 (lower left) shows windspeed, plot 4 (lower right) shows waterlevel." }
+M1 <- lm(beta_HAUL.TM ~ Air_Temperature, data = haulout_2020)
+M2 <- lm(beta_HAUL.TM ~ Precipitation, data = haulout_2020)
+M3 <- lm(beta_HAUL.TM ~ Windspeed, data = haulout_2020)
+M4 <- lm(beta_HAUL.TM ~ Waterlevel, data = haulout_2020)
+par(mfrow = c( 2, 2))
+plot(M1, which = 4)
+plot(M2, which = 4)
+plot(M3, which = 4)
+plot(M4, which = 4)
+```
+
+
+
+```{r,echo=FALSE, fig.cap= "INFLUENTIAL OBSERVATIONS in the 2019-data? Cook's distance plots for 4 continuous covariates, obtained from bivariate regression models with beta_HAUL.TM as response. Plot 1 (upper left) shows temperature, plot 2 (upper right) shows precipitation, plot 3 (lower left) shows windspeed, plot 4 (lower right) shows waterlevel." }
+M1 <- lm(beta_HAUL.TM ~ Air_Temperature, data = haulout_2019)
+M2 <- lm(beta_HAUL.TM ~ Precipitation, data = haulout_2019)
+M3 <- lm(beta_HAUL.TM ~ Windspeed, data = haulout_2019)
+M4 <- lm(beta_HAUL.TM ~ Waterlevel, data = haulout_2019)
+par(mfrow = c( 2, 2))
+plot(M1, which = 4)
+plot(M2, which = 4)
+plot(M3, which = 4)
+plot(M4, which = 4)
+```
+
+
+
+```{r,echo=FALSE, fig.cap= "INFLUENTIAL OBSERVATIONS in the 2017-data? Cook's distance plots for 4 continuous covariates, obtained from bivariate regression models with beta_HAUL.TM as response. Plot 1 (upper left) shows temperature, plot 2 (upper right) shows precipitation, plot 3 (lower left) shows windspeed, plot 4 (lower right) shows waterlevel." }
+M1 <- lm(beta_HAUL.TM ~ Air_Temperature, data = haulout_2017)
+M2 <- lm(beta_HAUL.TM ~ Precipitation, data = haulout_2017)
+M3 <- lm(beta_HAUL.TM ~ Windspeed, data = haulout_2017)
+M4 <- lm(beta_HAUL.TM ~ Waterlevel, data = haulout_2017)
+par(mfrow = c( 2, 2))
+plot(M1, which = 4)
+plot(M2, which = 4)
+plot(M3, which = 4)
+plot(M4, which = 4)
+```
+
+
+
+```{r,echo=FALSE, fig.cap= "INFLUENTIAL OBSERVATIONS in the 2012-data? Cook's distance plots for 4 continuous covariates, obtained from bivariate regression models with beta_HAUL.TM as response. Plot 1 (upper left) shows temperature, plot 2 (upper right) shows precipitation, plot 3 (lower left) shows windspeed, plot 4 (lower right) shows waterlevel." }
+M1 <- lm(beta_HAUL.TM ~ Air_Temperature, data = haulout_2012)
+M2 <- lm(beta_HAUL.TM ~ Precipitation, data = haulout_2012)
+M3 <- lm(beta_HAUL.TM ~ Windspeed, data = haulout_2012)
+M4 <- lm(beta_HAUL.TM ~ Waterlevel, data = haulout_2012)
+par(mfrow = c( 2, 2))
+plot(M1, which = 4)
+plot(M2, which = 4)
+plot(M3, which = 4)
+plot(M4, which = 4)
+```
+
+
+
+```{r,echo=FALSE, fig.cap= "INFLUENTIAL OBSERVATIONS in the 2009-data? Cook's distance plots for 4 continuous covariates, obtained from bivariate regression models with beta_HAUL.TM as response. Plot 1 (upper left) shows temperature, plot 2 (upper right) shows precipitation, plot 3 (lower left) shows windspeed, plot 4 (lower right) shows waterlevel." }
+M1 <- lm(beta_HAUL.TM ~ Air_Temperature, data = haulout_2009)
+M2 <- lm(beta_HAUL.TM ~ Precipitation, data = haulout_2009)
+M3 <- lm(beta_HAUL.TM ~ Windspeed, data = haulout_2009)
+M4 <- lm(beta_HAUL.TM ~ Waterlevel, data = haulout_2009)
+par(mfrow = c( 2, 2))
+plot(M1, which = 4)
+plot(M2, which = 4)
+plot(M3, which = 4)
+plot(M4, which = 4)
+```
+
+
+
+```{r,echo=FALSE, fig.cap= "INFLUENTIAL OBSERVATIONS in the 2008-data? Cook's distance plots for 4 continuous covariates, obtained from bivariate regression models with beta_HAUL.TM as response. Plot 1 (upper left) shows temperature, plot 2 (upper right) shows precipitation, plot 3 (lower left) shows windspeed, plot 4 (lower right) shows waterlevel." }
+M1 <- lm(beta_HAUL.TM ~ Air_Temperature, data = haulout_2008)
+M2 <- lm(beta_HAUL.TM ~ Precipitation, data = haulout_2008)
+M3 <- lm(beta_HAUL.TM ~ Windspeed, data = haulout_2008)
+M4 <- lm(beta_HAUL.TM ~ Waterlevel, data = haulout_2008)
+par(mfrow = c( 2, 2))
+plot(M1, which = 4)
+plot(M2, which = 4)
+plot(M3, which = 4)
+plot(M4, which = 4)
+```
+
+
+
+```{r, echo = FALSE,fig.cap= "2020-data: PCA biplot based on the correlation matrix for the continuous covariates temperature, windspeed, precipitation and water level."}
+haulout_PCA1 <- princomp(~ Air_Temperature + Precipitation + Windspeed + Waterlevel,
+                        data = haulout_2020,
+                        cor = TRUE)
+biplot(haulout_PCA1,
+       cex = 0.8)
+```
+
+
+
+```{r, echo = FALSE,fig.cap= "2019-data: PCA biplot based on the correlation matrix for the continuous covariates temperature, windspeed, precipitation and water level."}
+haulout_PCA2 <- princomp(~ Air_Temperature + Precipitation + Windspeed + Waterlevel,
+                        data = haulout_2019,
+                        cor = TRUE)
+biplot(haulout_PCA2,
+       cex = 0.8)
+```
+
+
+
+```{r, echo = FALSE,fig.cap= "2017-data: PCA biplot based on the correlation matrix for the continuous covariates temperature, windspeed, precipitation and water level."}
+haulout_PCA3 <- princomp(~ Air_Temperature + Precipitation + Windspeed + Waterlevel,
+                        data = haulout_2017,
+                        cor = TRUE)
+biplot(haulout_PCA3,
+       cex = 0.8)
+```
+
+
+
+```{r, echo = FALSE,fig.cap= "2012-data: PCA biplot based on the correlation matrix for the continuous covariates temperature, windspeed, precipitation and water level."}
+haulout_PCA4 <- princomp(~ Air_Temperature + Precipitation + Windspeed + Waterlevel,
+                        data = haulout_2012,
+                        cor = TRUE)
+biplot(haulout_PCA4,
+       cex = 0.8)
+```
+
+
+
+```{r, echo = FALSE,fig.cap= "2009-data: PCA biplot based on the correlation matrix for the continuous covariates temperature, windspeed, precipitation and water level."}
+haulout_PCA5 <- princomp(~ Air_Temperature + Precipitation + Windspeed + Waterlevel,
+                        data = haulout_2009,
+                        cor = TRUE)
+biplot(haulout_PCA5,
+       cex = 0.8)
+```
+
+
+
+```{r, echo = FALSE,fig.cap= "2008-data: PCA biplot based on the correlation matrix for the continuous covariates temperature, windspeed, precipitation and water level."}
+haulout_PCA6 <- princomp(~ Air_Temperature + Precipitation + Windspeed + Waterlevel,
+                        data = haulout_2008,
+                        cor = TRUE)
+biplot(haulout_PCA6,
+       cex = 0.8)
+```
+
+
+\newpage
+
+
+# Relationships
+
+```{r, echo=FALSE, fig.cap = "2020-data: Multipanel scatterplots of the response (HAUL.TM) and all continuous covariates. There seems to be a relationship between HAUL.TM and Waterlevel (strangely, it seems to be positive), between Windspeed and Waterlevel (seems fair), between HAUL.TM and Air_Temperature, between Waterlevel and Air_Temperature, something weird between solar_elevation and HAUL.TM, and weirdly between moon_phase and Air_Temperature."}
+
+MyVar <- c("HAUL.TM", "Windspeed", "Waterlevel", "Precipitation", "Air_Temperature", "solar_elevation", "moon_phase")
+
+pairs(haulout_2020[, MyVar], upper.panel = panel.smooth, cex = 0.5)
+
+```
+
+
+```{r, echo=FALSE, fig.cap = "2019-data: Multipanel scatterplots of the response (HAUL.TM) and all continuous covariates. Here there are no apparrent relationship with HAUL.TM and any of the other continuous covariates - due to the zero inflation. Possible relationships between Windspeed and Waterlevel, Windspeed and Precipitation, Windspeed and Air_Temperature, Waterlevel and Precipitation, Waterlevel and Air_Temperature."}
+
+MyVar <- c("HAUL.TM", "Windspeed", "Waterlevel", "Precipitation", "Air_Temperature", "solar_elevation", "moon_phase")
+
+pairs(haulout_2019[, MyVar], upper.panel = panel.smooth, cex = 0.5)
+
+```
+
+
+
+```{r, echo=FALSE, fig.cap = "2017-data: Multipanel scatterplots of the response (HAUL.TM) and all continuous covariates. Some relationship between HAUL.TM and Windspeed, Waterlevel, Air_Temperature and solar_elevation. Some relationship between Windspeed and Waterlevel, and Windspeed and Air_Temperature. Relationship between Air_Temperature and solar_elevation. Strong! This might show in a GVIF-calculation."}
+
+MyVar <- c("HAUL.TM", "Windspeed", "Waterlevel", "Precipitation", "Air_Temperature", "solar_elevation", "moon_phase")
+
+pairs(haulout_2017[, MyVar], upper.panel = panel.smooth, cex = 0.5)
+
+```
+
+
+```{r, echo=FALSE, fig.cap = "2012-data: Multipanel scatterplots of the response (HAUL.TM) and all continuous covariates. No apparrent relationships with HAUL.TM due to zero inflation. Only visual relationship here is between Air_Temperature and solar_elevation."}
+
+MyVar <- c("HAUL.TM", "Windspeed", "Waterlevel", "Precipitation", "Air_Temperature", "solar_elevation", "moon_phase")
+
+pairs(haulout_2012[, MyVar], upper.panel = panel.smooth, cex = 0.5)
+
+```
+
+
+
+```{r, echo=FALSE, fig.cap = "2009-data: Multipanel scatterplots of the response (HAUL.TM) and all continuous covariates. No apparrent relationships with HAUL.TM because of zero inflation. Negative relationship between Waterlevel and Precipitation!. I believe this is due to the very extreme Precipitation-values I detected as possible outliers Maybe a short period with very heavy rain during a period of low tides and etc.. Positive relationship between Air_Temperature and solar_elevation."}
+
+MyVar <- c("HAUL.TM", "Windspeed", "Waterlevel", "Precipitation", "Air_Temperature", "solar_elevation", "moon_phase")
+
+pairs(haulout_2009[, MyVar], upper.panel = panel.smooth, cex = 0.5)
+
+```
+
+
+```{r, echo=FALSE, fig.cap = "2008-data: Multipanel scatterplots of the response (HAUL.TM) and all continuous covariates. No apparrent relationships detected with HAUL.TM due to zero inflation. Relationship between Windspeed and Precipitation. Some possible relationship between Air_Temperature and solar_elevation."}
+
+MyVar <- c("HAUL.TM", "Windspeed", "Waterlevel", "Precipitation", "Air_Temperature", "solar_elevation", "moon_phase")
+
+pairs(haulout_2008[, MyVar], upper.panel = panel.smooth, cex = 0.5)
+
+```
+
+
+
+```{r, echo=FALSE, fig.cap="Multiple boxplots of haulouts conditioned by the categorical factor Night & Day for all the haulout data. Difficult to interpret because of zero inflation. The 2020-data is not so zero inflated, though - and shows more observations during daytime, but with a lower median value. I like that, it corresponds with what I have already found."}
+library(tidyverse)
+library(ggpubr)
+
+bx1 <- ggplot(data = haulout_2020, aes(x = Night_Day, y = HAUL.TM)) + geom_boxplot(aes(fill = Night_Day)) +
+    labs(x = "Night & Day 2020", y = "Haulout percent")
+bx2 <- ggplot(data = haulout_2019, aes(x = Night_Day, y = HAUL.TM)) + geom_boxplot(aes(fill = Night_Day)) +
+  labs(x = "Night & Day 2019", y = "Haulout percent")
+bx3 <- ggplot(data = haulout_2017, aes(x = Night_Day, y = HAUL.TM)) + geom_boxplot(aes(fill = Night_Day)) +
+  labs(x = "Night & Day 2017", y = "Haulout percent")
+bx4 <- ggplot(data = haulout_2012, aes(x = Night_Day, y = HAUL.TM)) + geom_boxplot(aes(fill = Night_Day)) +
+  labs(x = "Night & Day 2012", y = "Haulout percent")
+bx5 <- ggplot(data = haulout_2009, aes(x = Night_Day, y = HAUL.TM)) + geom_boxplot(aes(fill = Night_Day)) +
+  labs(x = "Night & Day 2009", y = "Haulout percent")
+bx6 <- ggplot(data = haulout_2008, aes(x = Night_Day, y = HAUL.TM)) + geom_boxplot(aes(fill = Night_Day)) +
+  labs(x = "Night & Day 2008", y = "Haulout percent")
+
+figure <- ggarrange(bx1, bx2 ,bx3, bx4, bx5, bx6,
+          ncol=2,nrow=3)
+figure
+```
+
+
+
+
+```{r, echo=FALSE, fig.cap="Multiple boxplots of haulouts conditioned by the categorical factor Light_cat for all the haulout data. Again, only the 2020-data is interpretable. More haulouts during Dusk and Night, then Dawn, and least haulouts during Day. It might be the same for 2017. The Northern Norway-data has a NA-category as well, and that is because the function I used to calculate the categories rendered NA's during polar night. I could have called the NA categoriy Polar_Night, actually."}
+
+bx1 <- ggplot(data = haulout_2020, aes(x = Light_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Light_cat)) +
+  labs(x = "Light 2020", y = "Haulout percent")
+bx2 <- ggplot(data = haulout_2019, aes(x = Light_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Light_cat)) +
+  labs(x = "Light 2019", y = "Haulout percent")
+bx3 <- ggplot(data = haulout_2017, aes(x = Light_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Light_cat)) +
+  labs(x = "Light 2017", y = "Haulout percent")
+bx4 <- ggplot(data = haulout_2012, aes(x = Light_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Light_cat)) +
+  labs(x = "Light 2012", y = "Haulout percent")
+bx5 <- ggplot(data = haulout_2009, aes(x = Light_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Light_cat)) +
+  labs(x = "Light 2009", y = "Haulout percent")
+bx6 <- ggplot(data = haulout_2008, aes(x = Light_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Light_cat)) +
+  labs(x = "Light 2008", y = "Haulout percent")
+
+figure <- ggarrange(bx1, bx2 ,bx3, bx4, bx5, bx6,
+          ncol=2,nrow=3)
+figure
+```
+
+
+
+
+```{r, echo=FALSE, fig.cap="Multiple boxplots of haulouts conditioned by the categorical factor REF for all the haulout data. 2020-data stands out, because it is again interpretable. Gamle-Erik does not have a great profile, though. A very high median MIGHT indicate that the tag has recorded too many or too long haulouts than actually occurred. The 2012- and 2009 data is very zero inflated. REF 04 from the 2017-data has a median of 100%, which is strange."}
+
+bx1 <- ggplot(data = haulout_2020, aes(x = REF, y = HAUL.TM)) + geom_boxplot(aes(fill = REF)) +
+  labs(x = "Individuals 2020", y = "Haulout percent")
+bx2 <- ggplot(data = haulout_2019, aes(x = REF, y = HAUL.TM)) + geom_boxplot(aes(fill = REF)) +
+  labs(x = "Individuals 2019", y = "Haulout percent")
+bx3 <- ggplot(data = haulout_2017, aes(x = REF, y = HAUL.TM)) + geom_boxplot(aes(fill = REF)) +
+  labs(x = "Individuals 2017", y = "Haulout percent")
+bx4 <- ggplot(data = haulout_2012, aes(x = REF, y = HAUL.TM)) + geom_boxplot(aes(fill = REF)) +
+  labs(x = "Individuals 2012", y = "Haulout percent")
+bx5 <- ggplot(data = haulout_2009, aes(x = REF, y = HAUL.TM)) + geom_boxplot(aes(fill = REF)) +
+  labs(x = "Individuals 2009", y = "Haulout percent")
+bx6 <- ggplot(data = haulout_2008, aes(x = REF, y = HAUL.TM)) + geom_boxplot(aes(fill = REF)) +
+  labs(x = "Individuals 2008", y = "Haulout percent")
+
+figure <- ggarrange(bx1, bx2 ,bx3, bx4, bx5, bx6,
+          ncol=2,nrow=3)
+figure
+```
+
+
+
+```{r, echo=FALSE, fig.cap="Multiple boxplots of haulouts conditioned by the categorical factor fMonth for all the haulout data. Again, it is only the 2020-data that is interpretable visually. It shows less haulouts during winter season and more haulouts during spring season. This makes sense, behaviorally. Some signs of the same trend can be seen in the other boxplots."}
+
+bx1 <- ggplot(data = haulout_2020, aes(x = fMonth, y = HAUL.TM)) + geom_boxplot(aes(fill = fMonth)) +
+  labs(x = "Months 2020", y = "Haulout percent")
+bx2 <- ggplot(data = haulout_2019, aes(x = fMonth, y = HAUL.TM)) + geom_boxplot(aes(fill = fMonth)) +
+  labs(x = "Months 2019", y = "Haulout percent")
+bx3 <- ggplot(data = haulout_2017, aes(x = fMonth, y = HAUL.TM)) + geom_boxplot(aes(fill = fMonth)) +
+  labs(x = "Months 2017", y = "Haulout percent")
+bx4 <- ggplot(data = haulout_2012, aes(x = fMonth, y = HAUL.TM)) + geom_boxplot(aes(fill = fMonth)) +
+  labs(x = "Months 2012", y = "Haulout percent")
+bx5 <- ggplot(data = haulout_2009, aes(x = fMonth, y = HAUL.TM)) + geom_boxplot(aes(fill = fMonth)) +
+  labs(x = "Months 2009", y = "Haulout percent")
+bx6 <- ggplot(data = haulout_2008, aes(x = fMonth, y = HAUL.TM)) + geom_boxplot(aes(fill = fMonth)) +
+  labs(x = "Months 2008", y = "Haulout percent")
+
+figure <- ggarrange(bx1, bx2 ,bx3, bx4, bx5, bx6,
+          ncol=2,nrow=3)
+figure
+```
+
+
+
+```{r, echo=FALSE, fig.cap="Multiple boxplots of haulouts conditioned by the categorical factor Tide_cat_abbr for all the haulout data. I am tempted to see a spatial difference here, when comparing the 2020 and 2008-data, from Skagerrak and Vesterålen, respectively. There seems to be less preference towards hauling out duing high tides in Skagerrak than in Northern Norway, when looking at these two data sets."}
+
+bx1 <- ggplot(data = haulout_2020, aes(x = Tide_cat_abbr, y = HAUL.TM)) + geom_boxplot(aes(fill = Tide_cat_abbr)) +
+  labs(x = "Tide categories 2020", y = "Haulout percent")
+bx2 <- ggplot(data = haulout_2019, aes(x = Tide_cat_abbr, y = HAUL.TM)) + geom_boxplot(aes(fill = Tide_cat_abbr)) +
+  labs(x = "Tide categories 2019", y = "Haulout percent")
+bx3 <- ggplot(data = haulout_2017, aes(x = Tide_cat_abbr, y = HAUL.TM)) + geom_boxplot(aes(fill = Tide_cat_abbr)) +
+  labs(x = "Tide categories 2017", y = "Haulout percent")
+bx4 <- ggplot(data = haulout_2012, aes(x = Tide_cat_abbr, y = HAUL.TM)) + geom_boxplot(aes(fill = Tide_cat_abbr)) +
+  labs(x = "Tide categories 2012", y = "Haulout percent")
+bx5 <- ggplot(data = haulout_2009, aes(x = Tide_cat_abbr, y = HAUL.TM)) + geom_boxplot(aes(fill = Tide_cat_abbr)) +
+  labs(x = "Tide categories 2009", y = "Haulout percent")
+bx6 <- ggplot(data = haulout_2008, aes(x = Tide_cat_abbr, y = HAUL.TM)) + geom_boxplot(aes(fill = Tide_cat_abbr)) +
+  labs(x = "Tide categories 2008", y = "Haulout percent")
+
+figure <- ggarrange(bx1, bx2 ,bx3, bx4, bx5, bx6,
+          ncol=2,nrow=3)
+figure
+```
+
+
+
+
+```{r, echo=FALSE, fig.cap="Multiple boxplots of haulouts conditioned by the categorical factor Moon_cat for all the haulout data. A cannot see any obvious trends with this variable on haulout time, at least not in the 2020-data. The 2012-data shows some more haulouts during First Qarter and New Moon. The 2017-data is way too influenced by a shorter time span, I guess. If not, all those seals preferred to haul out during First Quarter. The medians on FG and NM for the 2020-data are very slightly higher than the two other categories."}
+
+bx1 <- ggplot(data = haulout_2020, aes(x = Moon_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Moon_cat)) +
+  labs(x = "Moon categories 2020", y = "Haulout percent")
+bx2 <- ggplot(data = haulout_2019, aes(x = Moon_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Moon_cat)) +
+  labs(x = "Moon categories 2019", y = "Haulout percent")
+bx3 <- ggplot(data = haulout_2017, aes(x = Moon_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Moon_cat)) +
+  labs(x = "Moon categories 2017", y = "Haulout percent")
+bx4 <- ggplot(data = haulout_2012, aes(x = Moon_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Moon_cat)) +
+  labs(x = "Moon categories 2012", y = "Haulout percent")
+bx5 <- ggplot(data = haulout_2009, aes(x = Moon_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Moon_cat)) +
+  labs(x = "Moon categories 2009", y = "Haulout percent")
+bx6 <- ggplot(data = haulout_2008, aes(x = Moon_cat, y = HAUL.TM)) + geom_boxplot(aes(fill = Moon_cat)) +
+  labs(x = "Moon categories 2008", y = "Haulout percent")
+
+figure <- ggarrange(bx1, bx2 ,bx3, bx4, bx5, bx6,
+          ncol=2,nrow=3)
+figure
+```
+
+\newpage
+
+# Collinearity, multicollinearity, confounding
+
+```{r,include=FALSE}
+source("HighstatLibV10.R")
+library(GGally)
+library(lattice)
+```
+
+**When collinearity is present, I won't be able to say *which* covariate is driving the system.**
+
+Quote from @zuur2015: "The Pearson correlation coefficient is not a good option if one of the variables is a categorical variable that contains more than two levels (though it can be used for binary variables that are coded numerically). A graphical tool to assess collinearity between a continuous and categorical variable is to make a conditional boxplot."
+
+I source `HightstatLibV10.R` from my working directory, obtained from  [www.highstat.com](https://www.highstat.com/index.php).
+
+
+```{r, echo = FALSE, fig.cap="2020-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Night_Day (2 categories). The only difference detected is with solar_elevation, and THAT is not very strange or awesome."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2020, MyY, "Night_Day")
+```
+
+
+```{r, echo = FALSE, fig.cap="2019-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Night_Day (2 categories). Same interpretation as above."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2019, MyY, "Night_Day")
+```
+
+
+```{r, echo = FALSE, fig.cap="2017-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Night_Day (2 categories). Same interpretation as above. Slight temperature difference, and not strange relative to the shorter timeline."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2017, MyY, "Night_Day")
+```
+
+
+```{r, echo = FALSE, fig.cap="2012-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Night_Day (2 categories). Same interpretation as above, but also a slight difference with higher temperatures during days."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2012, MyY, "Night_Day")
+```
+
+
+```{r, echo = FALSE, fig.cap="2009-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Night_Day (2 categories). Same interpretation as above, and also some temperature difference, also natural since Northern Norway has a larger temperature difference between night and day."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2009, MyY, "Night_Day")
+```
+
+
+```{r, echo = FALSE, fig.cap="2008-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Night_Day (2 categories). Same interpretation as above."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2008, MyY, "Night_Day")
+```
+
+
+
+
+
+
+
+
+```{r, echo = FALSE, fig.cap="2020-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable fMonth (8 categories). When I attempt to interpret these boxplots from an environmenally logical angle, they all make sense. Precipitation is highly zero inflated, but it shows more precipitation during wet months."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2020, MyY, "fMonth")
+```
+
+
+```{r, echo = FALSE, fig.cap="2019-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable fMonth (5 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2019, MyY, "fMonth")
+```
+
+
+```{r, echo = FALSE, fig.cap="2017-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable fMonth (5 categories). Looks sensible."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2017, MyY, "fMonth")
+```
+
+
+```{r, echo = FALSE, fig.cap="2012-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable fMonth (12 categories). Looks even more sensible."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2012, MyY, "fMonth")
+```
+
+
+```{r, echo = FALSE, fig.cap="2009-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable fMonth (12 categories). Intepreted as above. Precipitation, though. June and September had some heavy showers, man."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2009, MyY, "fMonth")
+```
+
+
+```{r, echo = FALSE, fig.cap="2008-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable fMonth (9 categories). Sensible."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2008, MyY, "fMonth")
+```
+
+
+
+
+
+
+```{r, echo = FALSE, fig.cap="2020-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Light_cat (4 categories). Looks good."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2020, MyY, "Light_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2019-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Light_cat (4 categories). Looks good."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2019, MyY, "Light_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2017-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Light_cat (4 categories). Looks good."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2017, MyY, "Light_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2012-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Light_cat (4 categories). Looks good."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2012, MyY, "Light_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2009-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Light_cat (4 categories). Looks good."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2009, MyY, "Light_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2008-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Light_cat (4 categories). Looks good."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2008, MyY, "Light_cat")
+```
+
+
+
+
+
+
+```{r, echo = FALSE, fig.cap="2020-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Tide_cat_abbr (4 categories). Looks like Waterlevel is pretty collinear with Tide_cat (gasp)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2020, MyY, "Tide_cat_abbr")
+```
+
+
+```{r, echo = FALSE, fig.cap="2019-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Tide_cat_abbr (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2019, MyY, "Tide_cat_abbr")
+```
+
+
+```{r, echo = FALSE, fig.cap="2017-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Tide_cat_abbr (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2017, MyY, "Tide_cat_abbr")
+```
+
+
+```{r, echo = FALSE, fig.cap="2012-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Tide_cat_abbr (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2012, MyY, "Tide_cat_abbr")
+```
+
+
+```{r, echo = FALSE, fig.cap="2009-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Tide_cat_abbr (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2009, MyY, "Tide_cat_abbr")
+```
+
+
+```{r, echo = FALSE, fig.cap="2008-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Tide_cat_abbr (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2008, MyY, "Tide_cat_abbr")
+```
+
+
+
+
+
+
+```{r, echo = FALSE, fig.cap="2020-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Moon_cat (4 categories). moon_phase and Moon_cat is in accordance, what a shock. Waterlevel is also acting pretty similar. I might not be able to have all these nice variables in my model."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2020, MyY, "Moon_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2019-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Moon_cat (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2019, MyY, "Moon_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2017-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Moon_cat (4 categories). The timeline is short here, which might create different relationships and collinearity."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2017, MyY, "Moon_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2012-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Moon_cat (4 categories). Aha - this is how it looks when all months are represented. Nice."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2012, MyY, "Moon_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2009-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Moon_cat (4 categories)."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2009, MyY, "Moon_cat")
+```
+
+
+```{r, echo = FALSE, fig.cap="2008-data: Multipanel boxplot showing the relationship between all continuous covariates and the categorical variable Moon_cat (4 categories). There might be some hidden inference to be drawn from having this variable in the model."}
+MyY <- c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "solar_elevation", "moon_phase")
+Mybwplot(haulout_2008, MyY, "Moon_cat")
+```
+
+
+\newpage
+
+
+## Generalized VIF values for data with both continuous and categorical covariates (collinearity continued)
+
+To be able to calculate the variance inflation factor values for a set of both continuous and categorical variables, I need to produce generalized variance inflation factor [@fox1992].
+
+First, I create a data frame with all my continuous covariates. Then I use the `corvif` function to render the GVIF values. I will leave the code out of the pdf.
+
+I have to choose between pairs of variables: The categorical `Tide_cat` (12 levels) or the continuous `Waterlevel`. The categorical `Night_Day` (2 levels) or the categorical `Light_cat` (4 levels).
+
+I will look at the GVIFs and the $GVIF\frac{1}{2 \times Df}$ (the latter is the advised equation according to @fox1992, if the categorical variable has more than two levels, which in my case are `Light_cat`, `Moon_cat`, `REF`, and `Tide_cat`/`Tide_cat_abbr` (if I choose that one in favor of the continuous `Waterlevel`.)
+
+Quote from @zuur2015: There are various suggested values for a cut-off level for the VIF in th literature. Opinions vary depending on how conservative a researcher would like to be. According to some, a value larger than 10 indicates a very strong collinearity, while others argue that values larger than 5 or even 3 might be considered quite detrimental to regression models. Our preferred limit is 5, or even 3. Obviously, the cut-off level also depends on the strength of the relationships. If you have weak signals in your dataset, then collinearity may result in no explanatory variable being significant."
+
+I seem to have some weak relationships in my data, so I should probably set my cutoff limit to 3, just to be on the safe side.
+
+**2020**: The only value that is above 3, and should maybe be removed, is `solar_elevation`. 
+
+**2019**: Also here the only value that is not good is for `solar_elevation` (5.47).
+
+**2017**: I need to look in to `Month`, `Air_Temperature`, `Light_cat`, `moon_phase` and `solar_elevation`. These are possible fuck-ups for a model. The air temperature is very affected by any kind of temporal variable, it seems. And moon phase is hugely affected by being together with Moon_cat. Much more than in the other data frames. I must choose between Moon_cat and moon_phase, and figure out **how to deal with this being the only data frame with large collinearity with respect to time**.
+
+**2012**: `solar_elevation` has a GVIF of 6.78. All other variables look pretty safe.
+
+**2009**: `solar_elevation` has a GVIF of 6.53. All other variables look pretty safe.
+
+**2008**: The same is evident for this data. `solar_elevation has a GVIF of 6.17, the rest look safe enough.
+
+
+```{r, include = FALSE}
+MyCont_20 <- haulout_2020[, c("Month", "Moon_cat", "REF", "Air_Temperature", "Windspeed", "Precipitation", "Light_cat", "moon_phase", "solar_elevation", "Waterlevel")] 
+Cont_GVIF_2020 <- corvif(MyCont_20)
+
+MyCont_19 <- haulout_2019[, c("Month", "Moon_cat", "REF", "Air_Temperature", "Windspeed", "Precipitation", "Light_cat", "moon_phase", "solar_elevation", "Waterlevel")] 
+Cont_GVIF_2019 <- corvif(MyCont_19)
+
+MyCont_17 <- haulout_2017[, c("Month", "Moon_cat", "REF", "Air_Temperature", "Windspeed", "Precipitation", "Light_cat", "moon_phase", "solar_elevation", "Waterlevel")] 
+Cont_GVIF_2017 <- corvif(MyCont_17)
+
+MyCont_12 <- haulout_2012[, c("Month", "Moon_cat", "REF", "Air_Temperature", "Windspeed", "Precipitation", "Light_cat", "moon_phase", "solar_elevation", "Waterlevel")]
+Cont_GVIF_2012 <- corvif(MyCont_12)
+
+MyCont_09 <- haulout_2009[, c("Month", "Moon_cat", "REF", "Air_Temperature", "Windspeed", "Precipitation", "Light_cat", "moon_phase", "solar_elevation", "Waterlevel")]
+Cont_GVIF_2009 <- corvif(MyCont_09)
+
+MyCont_08 <- haulout_2008[, c("Month", "Moon_cat", "REF", "Air_Temperature", "Windspeed", "Precipitation", "Light_cat", "moon_phase", "solar_elevation", "Waterlevel")] 
+Cont_GVIF_2008 <- corvif(MyCont_08)
+```
+
+
+
+
+
+```{r, echo = FALSE}
+knitr::kable(Cont_GVIF_2020, "simple", caption = "Generalized variance inflation factors for the covariates in the 2020-data")
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(Cont_GVIF_2019, "simple", caption = "Generalized variance inflation factors for the covariates in the 2019-data")
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(Cont_GVIF_2017, "simple", caption = "Generalized variance inflation factors for the covariates in the 2017-data")
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(Cont_GVIF_2012, "simple", caption = "Generalized variance inflation factors for the covariates in the 2012-data")
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(Cont_GVIF_2009, "simple", caption = "Generalized variance inflation factors for the covariates in the 2009-data")
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(Cont_GVIF_2008, "simple", caption = "Generalized variance inflation factors for the covariates in the 2008-data")
+```
+
+
+
+
+
+
+
+
+```{r, include = FALSE}
+MyStrange_17 <- haulout_2017[, c("Air_Temperature", "Waterlevel", "Precipitation", "Windspeed", "Moon_cat", "Light_cat", "REF")]
+Strange_GVIF_2017 <- corvif(MyStrange_17)
+```
+
+
+```{r, echo = FALSE}
+knitr::kable(Strange_GVIF_2017, "simple", caption = "2017-data with reduced number of covariates")
+```
+
+\newpage
+
+## Confounding variables? (collinearity continued)
+
+Quote from @zuur2015: "When analysing ecological data, confounding variables can easily invalidate your results. The most common examples of confounding effects occur when variables such as month, season, location, and disturbance effects (among others) are responsible for significant environmental effects. If the data contain a season pattern, then a hidden variable such as temperature could be the real driving factor."
+
+When I did a correlation biplot on the continuous covariates, I saw that many of the environmental variables were close to each other and positively correlated. I did not include the plot, since it only showed correlations between continuous variables. 
+
+It is pretty obvious that temperatures are correlated with time of year/which month. Windspeeds and precipitation also natually show seasonal patterns. Moonphase is normally distributed. That is an environmental variable that ticks like a clock and is very precitable. Solar elevation as well. Waterlevel is a more complex environmental variable, affected both by tidal cycles and other phenomena, like wind direction and amount of precipitation. 
+
+I have to be careful not to over-define the model, and understand the potential and obvious hidden patterns in my complete set of variables. Remember that the 2017-data is not so pretty and smoothe compared to the other sets.
+
+\newpage
+
+```{r biblio, child = 'references_data_exploration.Rmd'}
+```
