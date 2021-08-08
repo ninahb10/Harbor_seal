@@ -1,0 +1,23 @@
+Variable,Description,Type
+REF,Individual ID,ID (categorical)
+CEN.DATE,Position in time between start date and end date of summary period,Continuous
+Month,Month of observation,Continuous
+fMonth,Month of observation,Categorical 
+decimal_day,Decimal day of observation,Continuous
+HAUL.TM*,Percent time hauled out during summary period,Proportion (continuous)
+binary_HAUL.TM*,"0 = < 75%, 1 = > 75%", Binary (categorical)
+beta_HAUL.TM*,HAUL.TM calculated between 0 and 1 (percent),Proportion
+water_level,Observed mean water level during period fit to CEN.DATE,Continuous
+Tide_cat,Observed mean water level in categories from low to high tide,Categorical (12)
+Tide_cat_abbr,"Same as above, but with abbreviation of tide level definition",Categorical (12)
+Air_Temperature,"Measured temperature, averaged beetween ports in location",Continuous
+Windspeed,"Measured windspeed, averaged between ports in location",Continuous
+Precipitation,"Amount of precipitation, averaged between ports in location",Continuous
+Solar_Elevation,"Calculated solar azimuth angle (in degrees from North), and elevation",Continuous
+Night_Day,"Positive solar elevation = Day, Negative solar elevation = Night",Categorical (2)
+Light_cat,"Night, Dusk, Day, Dawn calculated by solar elevation",Categorical (4)
+moon_phase,"Fraction of moon illuminated. Full moon: k = 1, New moon: k = 0 ",Continuous
+Moon_cat,"Full Moon, First Quarter, Last Quarter, New Moon",Categorical (4)
+Sex,Gender of individual,Categorical (2)
+Weight,Body mass in kg of individual,Continuous
+Length,Length in cm of individual,Continuous
